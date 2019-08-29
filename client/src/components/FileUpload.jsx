@@ -29,8 +29,9 @@ class FileUpload extends React.Component {
     super(props);
 
     this.state = {
-      imageURL: 'http://localhost:3001/public/image.jpg',
+      imageURL: '',
       loadingModels: true,
+      loadingDetection: false,
       imageFile: ''
     };
 
@@ -42,7 +43,6 @@ class FileUpload extends React.Component {
     ev.preventDefault();
 
     const data = new FormData();
-    console.log(this.uploadInput.files[0])
     this.setState({ imageFile: this.uploadInput.files[0] })
     data.append('file', this.uploadInput.files[0]);
     fetch('http://localhost:3001/upload', {
@@ -68,17 +68,16 @@ class FileUpload extends React.Component {
   }
 
   async start() {
-    const imageUpload = document.getElementById('imageUpload');
-    const container = document.createElement('div');
+    this.setState({ loadingDetection: true });
+    // const imageUpload = document.getElementById('imageUpload');
+    const container = document.getElementsByClassName('image-container')[0];
     container.style.position = 'relative';
-    document.body.append(container);
+    // document.body.append(container);
     document.body.append('Loaded');
     // fetch(imageUpload.src).then(res => res.blob()).then(async (blob) =>{
         // console.log(blob)
-        console.log(this.state.imageFile);
         const image = await faceapi.bufferToImage(this.state.imageFile);
-        console.log("Something")
-        container.append(image);
+        // container.append(image);
         const canvas = faceapi.createCanvasFromMedia(image);
         container.append(canvas);
         const displaySize = { width: image.width, height: image.height };
@@ -89,6 +88,7 @@ class FileUpload extends React.Component {
           const box = detection.detection.box;
           const drawBox = new faceapi.draw.DrawBox(box, { label: 'Face' });
           drawBox.draw(canvas);
+          this.setState({ loadingDetection: false });
       })
     // })
 
@@ -97,17 +97,26 @@ class FileUpload extends React.Component {
   render() {
     return (
       <div>
-      <form onSubmit={this.handleUploadImage}>
-        <div>
-          <input ref={(ref) => { this.uploadInput = ref; }} type="file" />
+        <form onSubmit={this.handleUploadImage}>
+          <div>
+            <input ref={(ref) => { this.uploadInput = ref; }} type="file" />
+          </div>
+          <div>
+            <button>Upload</button>
+          </div>
+        </form>
+        <div className="image-container">
+          { this.state.imageURL && 
+            <img src={this.state.imageURL} alt="img" id="imageUpload"/>
+          }
         </div>
-        <br />
-        <div>
-          <button>Upload</button>
-        </div>
-        <img src={this.state.imageURL} alt="img" id="imageUpload"/>
-      </form>
-      <button onClick={ this.start }>Detect</button>
+        <button onClick={ this.start }>Detect Faces</button>
+        { this.state.loadingModels &&
+          <p>Loading Models...</p>
+        }
+        { this.state.loadingDetection &&
+          <p>Loading Face Detection...</p>
+        }
       </div>
     );
   }
