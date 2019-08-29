@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 
 // import nodejs bindings to native tensorflow,
 // not required, but will speed up things drastically (python required)
@@ -13,7 +13,7 @@ import * as faceapi from 'face-api.js';
 // patch nodejs environment, we need to provide an implementation of
 // HTMLCanvasElement and HTMLImageElement, additionally an implementation
 // of ImageData is required, in case you want to use the MTCNN
-const { Canvas, Image, ImageData } = canvas
+const { ImageData } = canvas
 faceapi.env.monkeyPatch({ 
   Canvas: HTMLCanvasElement,
   Image: HTMLImageElement,
@@ -24,102 +24,85 @@ faceapi.env.monkeyPatch({
 })
 
 
-class FileUpload extends React.Component {
-  constructor(props) {
-    super(props);
+function FileUpload() {
+  let uploadInput = createRef();
 
-    this.state = {
-      imageURL: '',
-      loadingModels: true,
-      loadingDetection: false,
-      imageFile: ''
-    };
+  const [imageURL, setImageURL] = useState('');
+  const [loadingModels, setLoadingModels] = useState(true);
+  const [loadingDetection, setLoadingDetection] = useState(false);
+  const [imageFile, setImageFile] = useState('');
 
-    this.handleUploadImage = this.handleUploadImage.bind(this);
-    this.start = this.start.bind(this);
-  }
-
-  handleUploadImage(ev) {
-    ev.preventDefault();
-
-    const data = new FormData();
-    this.setState({ imageFile: this.uploadInput.files[0] })
-    data.append('file', this.uploadInput.files[0]);
-    fetch('http://localhost:3001/upload', {
-      method: 'POST',
-      body: data,
-    }).then((response) => {
-      response.json().then((body) => {
-        this.setState({ imageURL: `http://localhost:3001/${body.file}` });
-      });
-    });
-  }
-
-  componentDidMount = () => {
+  useEffect(() => {
     const path = '/models';
     Promise.all([
       faceapi.nets.faceRecognitionNet.loadFromUri(path),
       faceapi.nets.faceLandmark68Net.loadFromUri(path),
       faceapi.nets.ssdMobilenetv1.loadFromUri(path)
     ]).then(() => {
-      this.setState({loadingModels: false})
+      setLoadingModels(false);
     }).catch(err => console.log(err))
-    
+  }, []);
+
+  const handleUploadImage = event => {
+    event.preventDefault();
+    const data = new FormData();
+    setImageFile(uploadInput.files[0]);
+    data.append('file', uploadInput.files[0]);
+    fetch('http://localhost:3001/upload', {
+      method: 'POST',
+      body: data,
+    }).then((response) => {
+      response.json().then((body) => {
+        setImageURL(`http://localhost:3001/${body.file}`);
+      });
+    });
   }
 
-  async start() {
-    this.setState({ loadingDetection: true });
-    // const imageUpload = document.getElementById('imageUpload');
+  const start = async () => {
+    setLoadingDetection(true);
     const container = document.getElementsByClassName('image-container')[0];
     container.style.position = 'relative';
-    // document.body.append(container);
-    document.body.append('Loaded');
-    // fetch(imageUpload.src).then(res => res.blob()).then(async (blob) =>{
-        // console.log(blob)
-        const image = await faceapi.bufferToImage(this.state.imageFile);
-        // container.append(image);
-        const canvas = faceapi.createCanvasFromMedia(image);
-        container.append(canvas);
-        const displaySize = { width: image.width, height: image.height };
-        faceapi.matchDimensions(canvas, displaySize);
-        const detections = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors();
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        resizedDetections.forEach(detection => {
-          const box = detection.detection.box;
-          const drawBox = new faceapi.draw.DrawBox(box, { label: 'Face' });
-          drawBox.draw(canvas);
-          this.setState({ loadingDetection: false });
-      })
-    // })
-
+    const image = await faceapi.bufferToImage(imageFile);
+    const canvas = faceapi.createCanvasFromMedia(image);
+    container.append(canvas);
+    const displaySize = { width: image.width, height: image.height };
+    faceapi.matchDimensions(canvas, displaySize);
+    const detections = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors();
+    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+    resizedDetections.forEach(detection => {
+      const box = detection.detection.box;
+      const drawBox = new faceapi.draw.DrawBox(box);
+      drawBox.draw(canvas);
+      setLoadingDetection(false);
+    })
   }
 
-  render() {
-    return (
-      <div>
-        <form onSubmit={this.handleUploadImage}>
-          <div>
-            <input ref={(ref) => { this.uploadInput = ref; }} type="file" />
-          </div>
-          <div>
-            <button>Upload</button>
-          </div>
-        </form>
-        <div className="image-container">
-          { this.state.imageURL && 
-            <img src={this.state.imageURL} alt="img" id="imageUpload"/>
-          }
+  return (
+    <div>
+      <form onSubmit={ handleUploadImage }>
+        <div>
+          <input ref={ (ref) => { uploadInput = ref; }} type="file" />
         </div>
-        <button onClick={ this.start }>Detect Faces</button>
-        { this.state.loadingModels &&
-          <p>Loading Models...</p>
-        }
-        { this.state.loadingDetection &&
-          <p>Loading Face Detection...</p>
+        <div>
+          <button>Upload</button>
+        </div>
+      </form>
+      <div className="image-container">
+        { imageURL && 
+          <img src={ imageURL } alt="img" id="imageUpload"/>
         }
       </div>
-    );
-  }
+      { imageURL &&
+        <button onClick={ start }>Detect Faces</button>
+      }
+      { loadingModels &&
+        <p>Loading Models...</p>
+      }
+      { loadingDetection &&
+        <p>Loading Face Detection...</p>
+      }
+    </div>
+  );
 }
 
 export default FileUpload;

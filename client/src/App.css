@@ -9,6 +9,10 @@ body {
   flex-direction: column;
 }
 
+.image-container {
+  position: relative;
+}
+
 img {
   max-height: 600px;
 }
