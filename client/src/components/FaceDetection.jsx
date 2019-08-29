@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import FileUpload from './components/FileUpload';
-
-import './App.css';
+import React, { Fragment, useEffect } from 'react';
 
 // import nodejs bindings to native tensorflow,
 // not required, but will speed up things drastically (python required)
@@ -26,12 +23,8 @@ faceapi.env.monkeyPatch({
   createImageElement: () => document.createElement('img')
 })
 
-
-function App() {
-  const [imageURL, setImageURL] = useState('');
-  const [loadingModels, setLoadingModels] = useState(true);
-  const [loadingDetection, setLoadingDetection] = useState(false);
-  const [imageFile, setImageFile] = useState('');
+function FaceDetection(props) {
+  const { imageURL, setLoadingModels, setLoadingDetection, imageFile } = props;
 
   useEffect(() => {
     const path = '/models';
@@ -64,27 +57,17 @@ function App() {
   }
 
   return (
-    <div>
-      <FileUpload 
-        setImageURL={ setImageURL }
-        setImageFile={ setImageFile }
-      />
+    <Fragment>
       <div className="image-container">
         { imageURL && 
           <img src={ imageURL } alt="img" id="imageUpload"/>
         }
-      </div>
+      </div>  
       { imageURL &&
-        <button onClick={ start }>Detect Faces</button>
+          <button onClick={ start }>Detect Faces</button>
       }
-      { loadingModels &&
-        <p>Loading Models...</p>
-      }
-      { loadingDetection &&
-        <p>Loading Face Detection...</p>
-      }
-    </div>
+    </Fragment>
   );
 }
 
-export default App;
+export default FaceDetection;
