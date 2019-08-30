@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 
 // import nodejs bindings to native tensorflow,
 // not required, but will speed up things drastically (python required)
@@ -26,6 +26,8 @@ faceapi.env.monkeyPatch({
 function FaceDetection(props) {
   const { imageURL, setLoadingModels, setLoadingDetection, imageFile } = props;
 
+  const [detectedFaces, setDetectedFaces] = useState(false);
+
   useEffect(() => {
     const path = '/models';
     Promise.all([
@@ -34,13 +36,14 @@ function FaceDetection(props) {
       faceapi.nets.ssdMobilenetv1.loadFromUri(path)
     ]).then(() => {
       setLoadingModels(false);
+      imageURL && start();
     }).catch(err => console.log(err))
-  }, []);
+  }, [setLoadingModels, imageURL]);
 
   const start = async () => {
     setLoadingDetection(true);
     const container = document.getElementsByClassName('image-container')[0];
-    container.style.position = 'relative';
+    // container.style.position = 'relative';
     const image = await faceapi.bufferToImage(imageFile);
     const canvas = faceapi.createCanvasFromMedia(image);
     container.append(canvas);
@@ -53,6 +56,7 @@ function FaceDetection(props) {
       const drawBox = new faceapi.draw.DrawBox(box);
       drawBox.draw(canvas);
       setLoadingDetection(false);
+      setDetectedFaces(true)
     })
   }
 
@@ -63,8 +67,8 @@ function FaceDetection(props) {
           <img src={ imageURL } alt="img" id="imageUpload"/>
         }
       </div>  
-      { imageURL &&
-          <button onClick={ start }>Detect Faces</button>
+      { detectedFaces &&
+          <button>Detect Faces</button>
       }
     </Fragment>
   );
