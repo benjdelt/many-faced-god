@@ -1,45 +1,36 @@
-import React from 'react';
+import React, { createRef } from 'react';
 
-class FileUpload extends React.Component {
-  constructor(props) {
-    super(props);
+function FileUpload(props) {
 
-    this.state = {
-      imageURL: '',
-    };
+  const { setImageFile, setImageURL } = props;
 
-    this.handleUploadImage = this.handleUploadImage.bind(this);
-  }
+  let uploadInput = createRef();
 
-  handleUploadImage(ev) {
-    ev.preventDefault();
-
+  const handleUploadImage = event => {
+    event.preventDefault();
     const data = new FormData();
-    data.append('file', this.uploadInput.files[0]);
+    setImageFile(uploadInput.files[0]);
+    data.append('file', uploadInput.files[0]);
     fetch('http://localhost:3001/upload', {
       method: 'POST',
       body: data,
     }).then((response) => {
       response.json().then((body) => {
-        this.setState({ imageURL: `http://localhost:3001/${body.file}` });
+        setImageURL(`http://localhost:3001/${body.file}`);
       });
     });
   }
 
-  render() {
-    return (
-      <form onSubmit={this.handleUploadImage}>
+  return (
+      <form onSubmit={ handleUploadImage }>
         <div>
-          <input ref={(ref) => { this.uploadInput = ref; }} type="file" />
+          <input ref={ (ref) => { uploadInput = ref; }} type="file" />
         </div>
-        <br />
         <div>
           <button>Upload</button>
         </div>
-        <img src={this.state.imageURL} alt="img" />
-      </form>
-    );
-  }
+      </form>   
+  );
 }
 
 export default FileUpload;
