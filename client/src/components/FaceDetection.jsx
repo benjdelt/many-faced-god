@@ -67,14 +67,14 @@ function FaceDetection(props) {
       <div className="image-container">
         { imageURL && 
           <Fragment>
-            <img src={ imageURL } alt="img" id="imageUpload"/>
+            <img src={ imageURL } alt="img"/>
             <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
           </Fragment>
         }
       </div>  
       { detectedFaces &&
           <label className="switch">
-            <input type="checkbox" defaultChecked={ true } onChange={ handleToggleSwitch } />
+            <input type="checkbox" defaultChecked={ visibleFaces } onChange={ handleToggleSwitch } />
             <span className="slider round"></span>
           </label>
       }
