@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 
 // import nodejs bindings to native tensorflow,
 // not required, but will speed up things drastically (python required)
@@ -26,6 +26,9 @@ faceapi.env.monkeyPatch({
 function FaceDetection(props) {
   const { imageURL, setLoadingModels, setLoadingDetection, imageFile } = props;
 
+  const [detectedFaces, setDetectedFaces] = useState(false);
+  const [visibleFaces, setVisibleFaces] = useState(true);
+
   useEffect(() => {
     const path = '/models';
     Promise.all([
@@ -34,16 +37,14 @@ function FaceDetection(props) {
       faceapi.nets.ssdMobilenetv1.loadFromUri(path)
     ]).then(() => {
       setLoadingModels(false);
+      imageURL && start();
     }).catch(err => console.log(err))
-  }, []);
+  }, [setLoadingModels, imageURL]);
 
   const start = async () => {
     setLoadingDetection(true);
-    const container = document.getElementsByClassName('image-container')[0];
-    container.style.position = 'relative';
     const image = await faceapi.bufferToImage(imageFile);
-    const canvas = faceapi.createCanvasFromMedia(image);
-    container.append(canvas);
+    const canvas = document.getElementById('detected-faces');
     const displaySize = { width: image.width, height: image.height };
     faceapi.matchDimensions(canvas, displaySize);
     const detections = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors();
@@ -53,18 +54,29 @@ function FaceDetection(props) {
       const drawBox = new faceapi.draw.DrawBox(box);
       drawBox.draw(canvas);
       setLoadingDetection(false);
+      setDetectedFaces(true)
     })
+  }
+
+  const handleToggleSwitch = () => {
+    return visibleFaces ? setVisibleFaces(false) : setVisibleFaces(true);
   }
 
   return (
     <Fragment>
       <div className="image-container">
         { imageURL && 
-          <img src={ imageURL } alt="img" id="imageUpload"/>
+          <Fragment>
+            <img src={ imageURL } alt="img"/>
+            <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
+          </Fragment>
         }
       </div>  
-      { imageURL &&
-          <button onClick={ start }>Detect Faces</button>
+      { detectedFaces &&
+          <label className="switch">
+            <input type="checkbox" defaultChecked={ visibleFaces } onChange={ handleToggleSwitch } />
+            <span className="slider round"></span>
+          </label>
       }
     </Fragment>
   );
