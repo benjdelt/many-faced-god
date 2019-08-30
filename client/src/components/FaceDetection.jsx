@@ -27,6 +27,7 @@ function FaceDetection(props) {
   const { imageURL, setLoadingModels, setLoadingDetection, imageFile } = props;
 
   const [detectedFaces, setDetectedFaces] = useState(false);
+  const [visibleFaces, setVisibleFaces] = useState(true);
 
   useEffect(() => {
     const path = '/models';
@@ -42,11 +43,8 @@ function FaceDetection(props) {
 
   const start = async () => {
     setLoadingDetection(true);
-    const container = document.getElementsByClassName('image-container')[0];
-    // container.style.position = 'relative';
     const image = await faceapi.bufferToImage(imageFile);
-    const canvas = faceapi.createCanvasFromMedia(image);
-    container.append(canvas);
+    const canvas = document.getElementById('detected-faces');
     const displaySize = { width: image.width, height: image.height };
     faceapi.matchDimensions(canvas, displaySize);
     const detections = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors();
@@ -60,15 +58,25 @@ function FaceDetection(props) {
     })
   }
 
+  const handleToggleSwitch = () => {
+    return visibleFaces ? setVisibleFaces(false) : setVisibleFaces(true);
+  }
+
   return (
     <Fragment>
       <div className="image-container">
         { imageURL && 
-          <img src={ imageURL } alt="img" id="imageUpload"/>
+          <Fragment>
+            <img src={ imageURL } alt="img" id="imageUpload"/>
+            <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
+          </Fragment>
         }
       </div>  
       { detectedFaces &&
-          <button>Detect Faces</button>
+          <label className="switch">
+            <input type="checkbox" defaultChecked={ true } onChange={ handleToggleSwitch } />
+            <span className="slider round"></span>
+          </label>
       }
     </Fragment>
   );
