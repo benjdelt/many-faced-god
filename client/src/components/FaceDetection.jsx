@@ -28,6 +28,7 @@ function FaceDetection(props) {
 
   const [detectedFaces, setDetectedFaces] = useState(false);
   const [visibleFaces, setVisibleFaces] = useState(true);
+  const [facesCoordinates, setFacesCoordinates] = useState([]);
 
   useEffect(() => {
     const path = '/models';
@@ -50,6 +51,10 @@ function FaceDetection(props) {
     const detections = await faceapi.detectAllFaces(image).withFaceLandmarks().withFaceDescriptors();
     const resizedDetections = faceapi.resizeResults(detections, displaySize);
     resizedDetections.forEach(detection => {
+      setFacesCoordinates(facesCoordinates => [
+        ...facesCoordinates, 
+        detection.detection.box,
+      ]);
       const box = detection.detection.box;
       const drawBox = new faceapi.draw.DrawBox(box);
       drawBox.draw(canvas);
@@ -57,7 +62,7 @@ function FaceDetection(props) {
       setDetectedFaces(true)
     })
   }
-
+  
   const handleToggleSwitch = () => {
     return visibleFaces ? setVisibleFaces(false) : setVisibleFaces(true);
   }
@@ -69,6 +74,22 @@ function FaceDetection(props) {
           <Fragment>
             <img src={ imageURL } alt="img"/>
             <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
+            {facesCoordinates.map(faceCoordinates => {
+              const divStyle = {
+                top: faceCoordinates._y,
+                left: faceCoordinates._x,
+                height: faceCoordinates._height,
+                width: faceCoordinates._width,
+              }
+              return (
+                <div 
+                  className="face" 
+                  style={divStyle} 
+                  key={faceCoordinates._x}
+                >
+                </div>
+              )
+            })}
           </Fragment>
         }
       </div>  

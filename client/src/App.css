@@ -23,6 +23,11 @@ img {
   left: 0;
 }
 
+.face {
+  position: absolute;
+  /* background-color: green; */
+}
+
 .invisible {
   visibility: hidden;
 }
