@@ -67,6 +67,10 @@ function FaceDetection(props) {
     return visibleFaces ? setVisibleFaces(false) : setVisibleFaces(true);
   }
 
+  const handleClickFace = (divPositioning) => {
+    console.log(divPositioning);
+  }
+  
   return (
     <Fragment>
       <div className="image-container">
@@ -75,7 +79,7 @@ function FaceDetection(props) {
             <img src={ imageURL } alt="img"/>
             <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
             {facesCoordinates.map(faceCoordinates => {
-              const divStyle = {
+              const divPositioning = {
                 top: faceCoordinates._y,
                 left: faceCoordinates._x,
                 height: faceCoordinates._height,
@@ -83,9 +87,10 @@ function FaceDetection(props) {
               }
               return (
                 <div 
-                  className="face" 
-                  style={divStyle} 
+                  className={"face" + (visibleFaces ? "" : " invisible")} 
+                  style={divPositioning} 
                   key={faceCoordinates._x}
+                  onClick={() => handleClickFace(divPositioning)}
                 >
                 </div>
               )
