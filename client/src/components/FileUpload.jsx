@@ -2,7 +2,7 @@ import React, { createRef } from 'react';
 
 function FileUpload(props) {
 
-  const { setImageFile, setImageURL } = props;
+  const {setImageFile, setImageURL} = props;
 
   let uploadInput = createRef();
 
@@ -22,9 +22,9 @@ function FileUpload(props) {
   }
 
   return (
-      <form onSubmit={ handleUploadImage }>
+      <form onSubmit={handleUploadImage}>
         <div>
-          <input ref={ (ref) => { uploadInput = ref; }} type="file" />
+          <input ref={(ref) => { uploadInput = ref;}} type="file" />
         </div>
         <div>
           <button>Upload</button>

@@ -23,10 +23,10 @@ function App() {
         setLoadingDetection={ setLoadingDetection }
         imageFile={ imageFile }
       />
-      { loadingModels &&
+      {loadingModels &&
         <p>Loading Models...</p>
       }
-      { loadingDetection &&
+      {loadingDetection &&
         <p>Loading Face Detection...</p>
       }
     </Fragment>

@@ -24,7 +24,7 @@ faceapi.env.monkeyPatch({
 })
 
 function FaceDetection(props) {
-  const { imageURL, setLoadingModels, setLoadingDetection, imageFile } = props;
+  const {imageURL, setLoadingModels, setLoadingDetection, imageFile} = props;
 
   const [detectedFaces, setDetectedFaces] = useState(false);
   const [visibleFaces, setVisibleFaces] = useState(true);
@@ -62,7 +62,7 @@ function FaceDetection(props) {
       setDetectedFaces(true)
     })
   }
-  
+
   const handleToggleSwitch = () => {
     return visibleFaces ? setVisibleFaces(false) : setVisibleFaces(true);
   }
@@ -74,10 +74,10 @@ function FaceDetection(props) {
   return (
     <Fragment>
       <div className="image-container">
-        { imageURL && 
+        {imageURL && 
           <Fragment>
-            <img src={ imageURL } alt="img"/>
-            <canvas id="detected-faces" className={ visibleFaces ? "" : "invisible" }/>
+            <img src={imageURL} alt="img"/>
+            <canvas id="detected-faces" className={visibleFaces ? "" : "invisible"}/>
             {facesCoordinates.map(faceCoordinates => {
               const divPositioning = {
                 top: faceCoordinates._y,
@@ -98,9 +98,9 @@ function FaceDetection(props) {
           </Fragment>
         }
       </div>  
-      { detectedFaces &&
+      {detectedFaces &&
           <label className="switch">
-            <input type="checkbox" defaultChecked={ visibleFaces } onChange={ handleToggleSwitch } />
+            <input type="checkbox" defaultChecked={visibleFaces} onChange={handleToggleSwitch} />
             <span className="slider round"></span>
           </label>
       }
